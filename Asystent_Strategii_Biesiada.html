@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asystent Strategii — Biesiada Studio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0C0C0C;--surface:#141414;--surf2:#1C1C1C;--surf3:#222;
+  --border:#2E2E2E;--border2:#3a3a3a;
+  --white:#F0EDE8;--muted:#666;--muted2:#888;
+  --green:#00E87A;--yellow:#FFD93D;--red:#FF6B6B;
+  --blue:#00C4FF;--orange:#FF9F43;--purple:#C084FC;
+}
+body{background:var(--bg);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--purple);flex-shrink:0}
+.logo-text{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--purple);text-transform:uppercase}
+.topbar-title{font-size:14px;color:var(--white);font-weight:500}
+.app{max-width:720px;margin:0 auto;padding:20px 16px 80px}
+.screen{display:none}.screen.active{display:block}
+.phase-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:5px}
+.phase-title{font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px}
+.phase-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600;letter-spacing:.03em}
+.field input,.field select{width:100%;padding:9px 12px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:8px;background:var(--surf2);color:var(--white);outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--purple)}
+.field textarea{width:100%;padding:10px 12px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:8px;background:var(--surf2);color:var(--white);outline:none;resize:vertical;line-height:1.65}
+.field textarea::placeholder{color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+button{padding:9px 18px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surf2);color:var(--white);transition:all .15s}
+button:hover{background:var(--surf3)}
+button.pri{background:var(--purple);color:#0C0C0C;border-color:var(--purple);font-weight:700}
+button.pri:hover{background:#b070f0}
+button.sec{border-color:var(--blue);color:var(--blue)}
+button.sec:hover{background:#001a22}
+button.copy-btn{background:var(--green);color:#0C0C0C;border-color:var(--green);font-weight:700}
+button.copy-btn:hover{background:#00d16e}
+button.danger{border-color:var(--red);color:var(--red)}
+button.danger:hover{background:#1a0808}
+button:disabled{opacity:.4;cursor:not-allowed}
+.nav-row{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;align-items:center}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+.tip{font-size:12px;color:var(--muted2);line-height:1.55;padding:8px 10px;background:var(--surf3);border-radius:7px;margin-bottom:10px;border-left:2px solid var(--orange)}
+.rg{display:flex;flex-direction:column;gap:5px}
+.ri{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface)}
+.ri:hover{background:var(--surf2)}
+.ri input{flex-shrink:0;margin-top:2px;accent-color:var(--purple)}
+.ri span{font-size:13px;color:var(--white);line-height:1.45}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px}
+.loader-dots{display:flex;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--purple);animation:pulse 1.4s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.loader-text{font-size:14px;color:var(--muted);text-align:center;line-height:1.6}
+.result-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;font-size:13px;color:var(--white);line-height:1.85;white-space:pre-wrap;max-height:70vh;overflow-y:auto}
+.result-box h1{font-size:18px;font-weight:700;color:var(--purple);margin-bottom:8px;margin-top:16px}
+.result-box h2{font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:6px;margin-top:14px;text-transform:uppercase;letter-spacing:.05em}
+.result-box h3{font-size:13px;font-weight:700;color:var(--blue);margin-bottom:4px;margin-top:10px}
+.result-box p{margin-bottom:8px}
+.result-box ul{padding-left:16px;margin-bottom:8px}
+.result-box li{margin-bottom:4px}
+.result-box strong{color:var(--green)}
+.result-box hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.err{background:#1a0808;border:1px solid #3a1515;border-radius:8px;padding:12px;color:var(--red);font-size:13px;margin-bottom:12px}
+.section-chip{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--muted);margin:2px;cursor:pointer}
+.section-chip.active{border-color:var(--purple);color:var(--purple);background:#1a0a2e}
+.progress-line{height:2px;background:var(--border);margin-bottom:0;overflow:hidden}
+.progress-fill{height:100%;background:var(--purple);transition:width .3s}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-dot"></div>
+  <div>
+    <div class="logo-text">Biesiada Studio</div>
+    <div class="topbar-title">Asystent Strategii SM</div>
+  </div>
+</div>
+<div class="progress-line"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+<div class="app">
+
+<!-- ══ SETUP ══ -->
+<div class="screen active" id="sc-setup">
+  <div class="phase-label">Krok 1 z 2</div>
+  <div class="phase-title">Dane klienta i notatki</div>
+  <div class="phase-sub">Wpisz dane i wklej swoje notatki z nagrania onboardingu. Im więcej szczegółów tym lepsza strategia.</div>
+
+  <div class="row2">
+    <div class="field"><label>Imię klienta</label><input id="f-name" placeholder="np. Anna" /></div>
+    <div class="field"><label>Nazwa profilu</label><input id="f-handle" placeholder="np. @anna.foto" /></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Branża / specjalizacja</label>
+      <select id="f-branza">
+        <option value="fotograf slubny">Fotograf ślubny</option>
+        <option value="fotograf rodzinny i lifestyle">Fotograf rodzinny / lifestyle</option>
+        <option value="fotograf portretowy">Fotograf portretowy</option>
+        <option value="fotograf komercyjny i produktowy">Fotograf komercyjny</option>
+        <option value="fotograf ogolny">Fotograf — różne specjalizacje</option>
+        <option value="inna branza">Inna branża</option>
+      </select>
+    </div>
+    <div class="field"><label>Miasto</label><input id="f-miasto" placeholder="np. Kraków" /></div>
+  </div>
+
+  <div class="field">
+    <label>Twoje notatki z nagrania onboardingu</label>
+    <textarea id="f-notatki" style="min-height:200px" placeholder="Wklej tutaj swoje notatki z nagrania rozmowy onboardingowej. Pisz swobodnie — im więcej szczegółów tym lepiej. Możesz wkleić surowy tekst bez formatowania.
+
+Asystent sam wyciągnie z notatek:
+- Kim jest klientka i jaki ma profil
+- Jej cele i KPI
+- Persona idealnego klienta
+- USP i wyróżnik
+- Ton komunikacji i estetykę
+- Sezonowość i ograniczenia
+- Ustalenia operacyjne
+
+Możesz też wkleić eksport z asystenta onboardingowego."></textarea>
+  </div>
+
+  <div class="field">
+    <label>Dodatkowe obserwacje (opcjonalnie)</label>
+    <textarea id="f-obs" style="min-height:80px" placeholder="Coś czego nie ma w notatkach ale wydaje Ci się ważne — obserwacje z rozmowy, intuicje, coś co Cię uderzyło..."></textarea>
+  </div>
+
+  <hr>
+
+  <div class="card">
+    <div class="card-label">Co ma zawierać strategia</div>
+    <div class="tip">Domyślnie generuję pełną strategię. Możesz odznaczyć sekcje których nie potrzebujesz.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px" id="sections-picker">
+      <div class="section-chip active" data-key="persona">Persona</div>
+      <div class="section-chip active" data-key="usp">USP i pozycjonowanie</div>
+      <div class="section-chip active" data-key="kpi">Cele i KPI</div>
+      <div class="section-chip active" data-key="filary">Filary contentu</div>
+      <div class="section-chip active" data-key="ton">Ton i głos marki</div>
+      <div class="section-chip active" data-key="estetyka">Estetyka i klimat</div>
+      <div class="section-chip active" data-key="formaty">Proporcje formatów</div>
+      <div class="section-chip active" data-key="sezonowosc">Sezonowość</div>
+      <div class="section-chip active" data-key="plan">Plan M1 M2 M3</div>
+      <div class="section-chip active" data-key="unikac">Czego unikać</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Długość strategii</label>
+    <div class="rg">
+      <label class="ri"><input type="radio" name="dlugosc" value="krotka"> <span>Krótka — kluczowe punkty, maksymalnie zwięźle. Do wewnętrznego użytku przez Maksa.</span></label>
+      <label class="ri"><input type="radio" name="dlugosc" value="pelna" checked> <span>Pełna — każda sekcja szczegółowo rozpisana. Gotowa do wysłania klientce do akceptacji.</span></label>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="pri" onclick="generateStrategy()">Generuj strategię</button>
+  </div>
+</div>
+
+<!-- ══ LOADING ══ -->
+<div class="screen" id="sc-loading">
+  <div class="loader">
+    <div class="loader-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="loader-text" id="loading-text">Analizuję notatki z onboardingu...<br><span style="font-size:11px;color:var(--muted)">To może zająć 20-40 sekund</span></div>
+  </div>
+</div>
+
+<!-- ══ WYNIK ══ -->
+<div class="screen" id="sc-result">
+  <div class="phase-label">Strategia gotowa</div>
+  <div class="phase-title" id="result-title">Strategia SM</div>
+  <div class="phase-sub">Przejrzyj i wprowadź ewentualne poprawki przed wysłaniem do klientki.</div>
+
+  <div id="err-box" style="display:none"></div>
+  <div class="result-box" id="result-content"></div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-label">Regeneruj konkretną sekcję</div>
+    <div class="field" style="margin-bottom:8px">
+      <textarea id="f-regenerate" style="min-height:60px" placeholder="Napisz co chcesz zmienić lub doprecyzować — np. 'persona jest za ogólna, bardziej skup się na parach ślubnych 25-32 lata z Krakowa' albo 'filary contentu są zbyt podobne do siebie'"></textarea>
+    </div>
+    <button class="sec" onclick="regenerateSection()">Popraw strategię</button>
+  </div>
+
+  <div class="nav-row">
+    <button class="copy-btn" onclick="copyResult()">Kopiuj strategię</button>
+    <button onclick="goSetup()">← Nowa strategia</button>
+    <button class="danger" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+let generatedStrategy = '';
+let clientName = '';
+
+document.querySelectorAll('.section-chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+});
+
+function getActiveSections() {
+  return Array.from(document.querySelectorAll('.section-chip.active')).map(c => c.dataset.key);
+}
+
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = { 'sc-setup': 0, 'sc-loading': 50, 'sc-result': 100 };
+  document.getElementById('prog').style.width = (map[id] || 0) + '%';
+  window.scrollTo(0, 0);
+}
+
+function buildPrompt() {
+  const name = document.getElementById('f-name').value.trim() || 'klientka';
+  const handle = document.getElementById('f-handle').value.trim();
+  const branza = document.getElementById('f-branza').value;
+  const miasto = document.getElementById('f-miasto').value.trim();
+  const notatki = document.getElementById('f-notatki').value.trim();
+  const obs = document.getElementById('f-obs').value.trim();
+  const dlugosc = document.querySelector('input[name="dlugosc"]:checked')?.value || 'pelna';
+  const sections = getActiveSections();
+
+  const sectionLabels = {
+    persona: 'PERSONA IDEALNEGO KLIENTA — kim jest, czego się boi przed sesją, co ją powstrzymuje od rezerwacji, jakich słów używa szukając fotografa, kto decyduje o rezerwacji',
+    usp: 'USP I POZYCJONOWANIE — jedno konkretne zdanie które definiuje czym różni się od konkurencji, dlaczego ktoś wybiera właśnie ją',
+    kpi: 'CELE I KPI — konkretna liczba zapytań miesięcznie jako cel, segment klienta do pozyskania, co będzie mierzone',
+    filary: 'FILARY CONTENTU — 3-4 konkretne tematy (nie ogólne kategorie) z celem każdego filaru: który buduje zasięg, który buduje zaufanie, który konwertuje na zapytania',
+    ton: 'TON I GŁOS MARKI — jak mówi do klientów, czy to przyjaciółka czy profesjonalistka, czy używa humoru, jak zwraca się do odbiorców, czego unika w komunikacji',
+    estetyka: 'ESTETYKA I KLIMAT — klimat zdjęć i profilu, muzyka do rolek, styl grafik i cover images, referencje estetyczne',
+    formaty: 'PROPORCJE FORMATÓW — ile rolek tygodniowo, ile postów ze zdjęciem, czy stories, uzasadnienie proporcji',
+    sezonowosc: 'SEZONOWOŚĆ — kiedy jest pełny kalendarz a kiedy cisza, jak content zmienia się w zależności od pory roku, priorytety na poszczególne miesiące',
+    plan: 'PLAN NA M1 M2 M3 — co robimy w miesiącu 1 gdy konto jest zimne, co w miesiącu 2 gdy mamy pierwsze dane, co w miesiącu 3 gdy wiemy co działa',
+    unikac: 'CZEGO UNIKAĆ — tematy off limits, styl komunikacji którego nie chce, typy klientów których nie targetujemy, błędy których nie popełniamy',
+  };
+
+  const selectedSections = sections.map(k => sectionLabels[k]).filter(Boolean).join('\n\n');
+
+  const dlugoscInstr = dlugosc === 'krotka'
+    ? 'Dokument jest wewnętrzny — dla content creatora Maksa. Pisz zwięźle, konkretnie, bez ozdobników. Każda sekcja maksymalnie 3-5 zdań.'
+    : 'Dokument będzie wysłany klientce do akceptacji. Pisz profesjonalnie ale zrozumiale dla osoby która nie zna terminologii marketingowej. Każda sekcja powinna być dobrze rozwinięta i uzasadniona.';
+
+  return `Jesteś ekspertem od strategii social media specjalizującym się w budowaniu marek osobistych dla fotografów w Polsce.
+
+Twoim zadaniem jest stworzenie kompletnej strategii SM na podstawie notatek z onboardingu klientki.
+
+DANE KLIENTKI:
+Imię: ${name}
+Profil: ${handle || 'brak'}
+Branża: ${branza}
+Miasto: ${miasto || 'brak'}
+
+NOTATKI Z ONBOARDINGU:
+${notatki || 'Brak notatek — stwórz strategię na podstawie dostępnych danych.'}
+
+${obs ? 'DODATKOWE OBSERWACJE:\n' + obs : ''}
+
+INSTRUKCJE:
+${dlugoscInstr}
+
+Strategia musi zawierać następujące sekcje (w tej kolejności):
+
+${selectedSections}
+
+WAŻNE ZASADY:
+- Pisz w języku polskim z polskimi znakami
+- Strategia musi być konkretna i oparta na notatkach z onboardingu — nie pisz ogólników
+- Persona to konkretna osoba a nie abstrakcyjna demografia
+- Filary contentu to konkretne tematy które można przełożyć na scenariusze rolek — nie ogólne kategorie jak "lifestyle" czy "behind the scenes"
+- USP to jedno zdanie które można wkleić bezpośrednio do bio
+- Jeśli w notatkach brakuje informacji do jakiejś sekcji — napisz [WYMAGA DOPRECYZOWANIA] i podaj konkretne pytanie które trzeba zadać klientce
+- Formatuj dokument czytelnie używając nagłówków i list
+
+Zacznij od tytułu: STRATEGIA SM — ${name.toUpperCase()}`;
+}
+
+async function generateStrategy() {
+  const notatki = document.getElementById('f-notatki').value.trim();
+  if (!notatki) {
+    alert('Wklej notatki z onboardingu żeby wygenerować strategię.');
+    return;
+  }
+
+  clientName = document.getElementById('f-name').value.trim() || 'klient';
+  document.getElementById('result-title').textContent = 'Strategia SM — ' + clientName;
+
+  setScreen('sc-loading');
+
+  const loadingMsgs = [
+    'Analizuję notatki z onboardingu...',
+    'Buduję personę idealnego klienta...',
+    'Definiuję USP i pozycjonowanie...',
+    'Tworzę filary contentu...',
+    'Układam plan na 3 miesiące...',
+    'Finalizuję dokument...',
+  ];
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMsgs.length;
+    document.getElementById('loading-text').innerHTML = loadingMsgs[msgIdx] + '<br><span style="font-size:11px;color:var(--muted)">To może zająć 20-40 sekund</span>';
+  }, 3500);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: buildPrompt() }]
+      })
+    });
+
+    clearInterval(msgInterval);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Błąd API');
+    }
+
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    generatedStrategy = text;
+    renderResult(text);
+    setScreen('sc-result');
+
+  } catch (err) {
+    clearInterval(msgInterval);
+    document.getElementById('err-box').style.display = 'block';
+    document.getElementById('err-box').className = 'err';
+    document.getElementById('err-box').textContent = 'Błąd: ' + err.message;
+    setScreen('sc-result');
+  }
+}
+
+async function regenerateSection() {
+  const feedback = document.getElementById('f-regenerate').value.trim();
+  if (!feedback) {
+    alert('Napisz co chcesz zmienić.');
+    return;
+  }
+
+  setScreen('sc-loading');
+  document.getElementById('loading-text').innerHTML = 'Poprawiam strategię...<br><span style="font-size:11px;color:var(--muted)">Chwilę poczekaj</span>';
+
+  try {
+    const prompt = `Masz gotową strategię SM:
+
+${generatedStrategy}
+
+Użytkownik chce wprowadzić następującą zmianę lub poprawkę:
+${feedback}
+
+Wygeneruj poprawioną wersję całej strategii uwzględniającą tę zmianę. Zachowaj strukturę i wszystkie sekcje które były dobre — zmodyfikuj tylko to co dotyczy prośby.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'Błąd API');
+
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    generatedStrategy = text;
+    renderResult(text);
+    document.getElementById('f-regenerate').value = '';
+    setScreen('sc-result');
+
+  } catch (err) {
+    document.getElementById('err-box').style.display = 'block';
+    document.getElementById('err-box').className = 'err';
+    document.getElementById('err-box').textContent = 'Błąd: ' + err.message;
+    setScreen('sc-result');
+  }
+}
+
+function renderResult(text) {
+  const box = document.getElementById('result-content');
+  const html = text
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul]|<\/[ul]|<p|<\/p|<hr|<strong)(.+)$/gm, '<p>$1</p>');
+  box.innerHTML = '<p>' + html + '</p>';
+}
+
+function copyResult() {
+  navigator.clipboard.writeText(generatedStrategy).then(() => {
+    alert('Skopiowano! Wklej do dokumentu, Notion lub wyślij klientce.');
+  });
+}
+
+function goSetup() {
+  setScreen('sc-setup');
+}
+
+function resetAll() {
+  generatedStrategy = '';
+  clientName = '';
+  document.querySelectorAll('input[type=text],textarea').forEach(el => el.value = '');
+  document.getElementById('f-branza').selectedIndex = 0;
+  document.querySelector('input[name="dlugosc"][value="pelna"]').checked = true;
+  document.querySelectorAll('.section-chip').forEach(c => c.classList.add('active'));
+  document.getElementById('err-box').style.display = 'none';
+  setScreen('sc-setup');
+}
+</script>
+</body>
+</html>
